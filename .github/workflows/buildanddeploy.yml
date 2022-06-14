@@ -16,11 +16,12 @@ on:
 env:
   AZURE_WEBAPP_NAME: 4thelloworlddemo
   DOTNET_VERSION: '6.0.x'
+  AZURE_WEBAPP_PACKAGE_PATH: ${{ runner.temp }}/helloworldapp
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    name: Build and Deploy
+    name: Build
     steps:
 
       - uses: actions/checkout@master
@@ -33,8 +34,25 @@ jobs:
       - name: dotnet build and publish
         run: |
           dotnet build ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj --configuration Release
-          dotnet publish ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj -c Release -o ${{ runner.temp }}/helloworldapp 
-      
+          dotnet publish ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj -c Release -o ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} 
+
+      - name: Publish Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: webapp
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+    
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Production
+    needs: [build]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: webapp
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
       - name: Login for az cli commands 
         uses: azure/login@v1
         with:
@@ -44,10 +62,11 @@ jobs:
         uses: azure/webapps-deploy@v2
         with: 
           app-name: ${{ env.AZURE_WEBAPP_NAME }}-webapp 
-          package: '${{ runner.temp }}/helloworldapp'
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
           slot-name: staging
 
       - name: Swap to production slot
         run: |
           az webapp deployment slot swap --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --slot staging --target-slot production
           echo "Swap finished. App Service Application URL: https://$(az webapp show --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query hostNames[0] -o tsv)"
+

@@ -7,13 +7,13 @@ Perform the following action to setup resource groups and secrets fo the GitHub 
 - Create a resource group
 
   ```
-  az group create -n demo-gh-actions -l westeurope
+  az group create -n demo-devsecops -l westeurope
   ```
 
 - Create a service principal
 
   ```
-  az ad sp create-for-rbac --name gh-actions-demo --role contributor --scopes /subscriptions/{subscription-id}/resourceGroups/demo-gh-actions --sdk-auth
+  az ad sp create-for-rbac --name devsecops-demo --role contributor --scopes /subscriptions/{subscription-id}/resourceGroups/demo-devsecops --sdk-auth
   ```
 
 - Create secrets in GitHub repository
