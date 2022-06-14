@@ -1,5 +1,6 @@
 ﻿using HelloWorld.Database;
 using HelloWorld.Options;
+using HelloWorld.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +37,8 @@ namespace HelloWorld
             services.AddMvc();
             services.AddSingleton<ConfigurationOptions>(new ConfigurationOptions() { Message = Configuration["Message"], DeploymentEnvironment = Configuration["DeploymentEnvironment"] });
             services.AddDbContext<DemoContext>(options => options.UseInMemoryDatabase(databaseName: "Demo"));
+
+            services.AddSingleton<IBadEncryptionService, BadEncryptionService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
