@@ -7,7 +7,7 @@
         public string GetMeSomeInfo()
         {
             // do something with the token
-            return string.Empty;
+            return _token.ToLower();
         }
     }
 }
